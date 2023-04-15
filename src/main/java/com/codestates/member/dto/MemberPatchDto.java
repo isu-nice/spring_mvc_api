@@ -1,4 +1,4 @@
-package com.codestates.member;
+package com.codestates.member.dto;
 
 import com.codestates.validator.NotSpace;
 

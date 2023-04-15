@@ -1,4 +1,4 @@
-package com.codestates.coffee;
+package com.codestates.coffee.dto;
 
 import org.hibernate.validator.constraints.Range;
 
@@ -9,7 +9,7 @@ public class CoffeePostDto {
     @NotBlank
     private String korName;
 
-    @NotBlank
+    //@NotBlank(message = "커피명(영문)은 영문이어야 합니다(단어 사이 공백 한 칸 포함). 예) Cafe Latte")
     @Pattern(regexp = "^([A-Za-z])(\\s?[A-Za-z])*$",
             message = "커피명(영문)은 영문이어야 합니다(단어 사이 공백 한 칸 포함). 예) Cafe Latte")
     private String engName;
