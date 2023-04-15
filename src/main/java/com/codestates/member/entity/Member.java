@@ -1,4 +1,4 @@
-package com.codestates.member;
+package com.codestates.member.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
