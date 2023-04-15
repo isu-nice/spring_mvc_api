@@ -1,5 +1,6 @@
 package com.codestates.order;
 
+import com.codestates.order.mapper.OrderMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -7,30 +8,53 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/v1/orders")
+@RequestMapping(value = "/v5/orders")
 @Validated
 public class OrderController {
+    private final OrderService orderService;
+    private final OrderMapper mapper;
+
+    public OrderController(OrderService orderService, OrderMapper mapper) {
+        this.orderService = orderService;
+        this.mapper = mapper;
+    }
 
     @PostMapping
     public ResponseEntity postOrder(@Valid @RequestBody OrderPostDto orderPostDto) {
-        return new ResponseEntity<>(orderPostDto, HttpStatus.CREATED);
+        Order order = orderService.createOrder(mapper.orderPostDtoToOrder(orderPostDto));
+
+        return new ResponseEntity<>(mapper.orderToOrderResponseDto(order),
+                HttpStatus.CREATED);
     }
 
     @GetMapping("/{order-id}")
     public ResponseEntity getOrder(@PathVariable("order-id") @Positive long orderId) {
-        System.out.println("# orderId = " + orderId);
+        Order order = orderService.findOrder(orderId);
 
-        // not implementation
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(mapper.orderToOrderResponseDto(order),
+                HttpStatus.OK);
     }
 
     @GetMapping
     public ResponseEntity getOrders() {
-        System.out.println("# get Orders");
+        List<Order> orders = orderService.findOrders();
+        List<OrderResponseDto> response =
+                orders.stream()
+                        .map(order -> mapper.orderToOrderResponseDto(order))
+                        .collect(Collectors.toList());
 
-        // not implementation
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{order-id}")
+    public ResponseEntity cancelOrder(@PathVariable("order-id") long orderId) {
+        System.out.println("# cancel order");
+        orderService.cancelOrder();
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
