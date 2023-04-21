@@ -1,6 +1,8 @@
 package com.codestates.response;
 
+import com.codestates.exception.ExceptionCode;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 
 import javax.validation.ConstraintViolation;
@@ -11,12 +13,21 @@ import java.util.stream.Collectors;
 @Getter
 public class ErrorResponse {
 
+    private Integer status;
+    private String message;
+
     // MethodArgumentNotValidException 으로부터 발생하는 에러 정보를 담는 멤버 변수
     // -> DTO 멤버 변수 필드의 유효성 검증 실패로 발생한 에러 정보를 담는 멤버 변수
     private List<FieldError> fieldErrors;
     // ConstraintViolationException 으로부터 발생하는 에러 정보를 담는 멤버 변수
     // -> URI 변수 값의 유효성 검증 실패로 발생한 에러 정보를 담는 멤버 변수
     private List<ConstraintViolationError> violationErrors;
+
+    // constructor 추가
+    public ErrorResponse(Integer status, String message) {
+        this.status = status;
+        this.message = message;
+    }
 
     // private 로 설정 -> new 하지 못하도록 함
     // -> of() 메서드를 이용해서 ErrorResponse 객체를 생성할 수 있음
@@ -37,6 +48,14 @@ public class ErrorResponse {
     public static ErrorResponse of(Set<ConstraintViolation<?>> violations) {
         // Set<ConstraintViolation<?>> 객체로 에러 정보를 추출하고 가공하는 일은 ConstraintViolationError 클래스에 위임
         return new ErrorResponse(null, ConstraintViolationError.of(violations));
+    }
+
+    public static ErrorResponse of(ExceptionCode exceptionCode) {
+        return new ErrorResponse(exceptionCode.getStatus(), exceptionCode.getMessage());
+    }
+
+    public static ErrorResponse of(HttpStatus httpStatus) {
+        return new ErrorResponse(httpStatus.value(), httpStatus.getReasonPhrase());
     }
 
     // 1. 필드(DTO 클래스의 멤버 변수)의 유효성 검증에서 발생하는 에러 정보를 생성
