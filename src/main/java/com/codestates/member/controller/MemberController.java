@@ -6,6 +6,7 @@ import com.codestates.member.dto.MemberResponseDto;
 import com.codestates.member.entity.Member;
 import com.codestates.member.service.MemberService;
 import com.codestates.member.mapper.MemberMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -14,15 +15,16 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * - DI 적용
  * - Mapstruct Mapper 적용
+ * - @ExceptionHandler 적용
  */
 @RestController
-@RequestMapping(value = "/v5/members") // produces 설정 제거
+@RequestMapping(value = "/v10/members") // produces 설정 제거
 @Validated
+@Slf4j
 public class MemberController {
     private final MemberService memberService;
     private final MemberMapper mapper;
