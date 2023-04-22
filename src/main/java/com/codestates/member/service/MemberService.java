@@ -3,43 +3,78 @@ package com.codestates.member.service;
 import com.codestates.exception.BusinessLogicException;
 import com.codestates.exception.ExceptionCode;
 import com.codestates.member.entity.Member;
+import com.codestates.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MemberService {
-    public Member createMember(Member member) {
-        // TODO should business logic
+    private MemberRepository memberRepository;
 
-        // TODO member 객체는 나중에 DB에 저장 후, 되돌려 받는 것으로 변경 필요
-        throw new BusinessLogicException(ExceptionCode.NOT_IMPLEMENTATION);
+    // 리포지토리 DI
+    public MemberService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
+
+    public Member createMember(Member member) {
+        // 이미 등록된 이메일인지 검증
+        verifyExistsEmail(member.getEmail());
+
+        // 회원 정보 저장
+        return memberRepository.save(member);
     }
 
     public Member updateMember(Member member) {
-        // TODO should business logic
+        // 존재하는 회원인지 검증
+        Member findMember = findVerifiedMember(member.getMemberId());
 
-        // TODO member 객체는 나중에 DB에 업데이트 후, w되돌려 받는 것으로 변경 필요
-        throw new BusinessLogicException(ExceptionCode.NOT_IMPLEMENTATION);
+        // 이름 정보와 휴대폰 번호 정보 업데이트
+        Optional.ofNullable(member.getName())
+                .ifPresent(name -> findMember.setName(name));
+        Optional.ofNullable(member.getPhone())
+                .ifPresent(findMember::setPhone);
 
+        // 회원 정보 업데이트
+        return memberRepository.save(findMember);
     }
 
+    // 특정 회원 정보 조회
     public Member findMember(long memberId) {
-        // TODO should business logic
-        // TODO member 객체는 나중에 DB에서 조회 하는 것으로 변경 필요
-        throw new BusinessLogicException(ExceptionCode.NOT_IMPLEMENTATION);
+        return findVerifiedMember(memberId);
     }
 
+    // 모든 회원 정보 조회
     public List<Member> findMembers() {
-        // TODO should business logic
-
-        // TODO member 객체는 나중에 DB에서 조회하는 것으로 변경 필요.
-        throw new BusinessLogicException(ExceptionCode.NOT_IMPLEMENTATION);
-
+        return (List<Member>) memberRepository.findAll();
     }
 
+    // 특정 회원 정보 삭제
     public void deleteMember(long memberId) {
-        // TODO should business logic
-        throw new BusinessLogicException(ExceptionCode.NOT_IMPLEMENTATION);
+        Member findMember = findVerifiedMember(memberId);
+
+        memberRepository.delete(findMember);
     }
+
+    // 이미 존재하는 회원인지 검증
+    public Member findVerifiedMember(long memberId) {
+        Optional<Member> optionalMember =
+                memberRepository.findById(memberId);
+        Member findMember =
+                optionalMember.orElseThrow(() ->
+                        new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+        return findMember;
+    }
+
+    // 이미 등록된 이메일 주소인지 검증
+    private void verifyExistsEmail(String email) {
+        Optional<Member> member = memberRepository.findByEmail(email);
+
+        if (member.isPresent()) {
+            throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS);
+        }
+    }
+
+
 }
