@@ -11,7 +11,7 @@ public class CoffeePostDto {
     @NotBlank
     private String korName;
 
-    //@NotBlank(message = "커피명(영문)은 영문이어야 합니다(단어 사이 공백 한 칸 포함). 예) Cafe Latte")
+    @NotBlank
     @Pattern(regexp = "^([A-Za-z])(\\s?[A-Za-z])*$",
             message = "커피명(영문)은 영문이어야 합니다(단어 사이 공백 한 칸 포함). 예) Cafe Latte")
     private String engName;
