@@ -49,21 +49,26 @@ public class CoffeeService {
         return findVerifiedCoffeeByQuery(coffeeId);
     }
 
-    public List<Coffee> findCoffees() {
-        return (List<Coffee>) coffeeRepository.findAll();
-    }
-
-    public void deleteCoffee(long coffeeId) {
-        Coffee coffee = findCoffee(coffeeId);
-        coffeeRepository.delete(coffee);
-    }
-
     // 주문에 해당하는 커피 정보 조회
     public List<Coffee> findOrderedCoffees(Order order) {
         return order.getOrderCoffees()
                 .stream()
                 .map(coffeeRef -> findCoffee(coffeeRef.getCoffeeId()))
                 .collect(Collectors.toList());
+    }
+
+    public List<Coffee> findCoffees() {
+        return (List<Coffee>) coffeeRepository.findAll();
+    }
+
+    // 주문한 커피 정보를 한번에 조회한다
+    public List<Coffee> findAllCoffeesByIds(List<Long> coffeeIds) {
+        return (List<Coffee>) coffeeRepository.findAllById(coffeeIds);
+    }
+
+    public void deleteCoffee(long coffeeId) {
+        Coffee coffee = findCoffee(coffeeId);
+        coffeeRepository.delete(coffee);
     }
 
     public Coffee findVerifiedCoffee(long coffeeId) {
