@@ -1,10 +1,12 @@
 package com.codestates.coffee.dto;
 
 import com.codestates.validator.NotSpace;
+import lombok.Getter;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.Pattern;
 
+@Getter
 public class CoffeePatchDto {
     private long coffeeId;
 
@@ -17,23 +19,7 @@ public class CoffeePatchDto {
     @Range(min = 100, max = 50000)
     private Integer price;
 
-    public long getCoffeeId() {
-        return coffeeId;
-    }
-
     public void setCoffeeId(long coffeeId) {
         this.coffeeId = coffeeId;
-    }
-
-    public String getKorName() {
-        return korName;
-    }
-
-    public String getEngName() {
-        return engName;
-    }
-
-    public Integer getPrice() {
-        return price;
     }
 }
