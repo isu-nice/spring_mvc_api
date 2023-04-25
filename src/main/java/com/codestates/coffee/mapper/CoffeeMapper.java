@@ -5,6 +5,7 @@ import com.codestates.coffee.dto.CoffeePostDto;
 import com.codestates.coffee.dto.CoffeeResponseDto;
 import com.codestates.coffee.entity.Coffee;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 
 import java.util.List;
 
