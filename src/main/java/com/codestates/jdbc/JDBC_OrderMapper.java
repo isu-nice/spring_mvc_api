@@ -1,6 +1,6 @@
 package com.codestates.jdbc;
 
-import com.codestates.order.entity.CoffeeRef;
+//import com.codestates.order.entity.CoffeeRef;
 //import com.google.common.collect.Streams;
 //import org.springframework.data.jdbc.core.mapping.AggregateReference;
 
