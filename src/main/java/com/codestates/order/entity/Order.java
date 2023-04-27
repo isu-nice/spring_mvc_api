@@ -1,33 +1,44 @@
 package com.codestates.order.entity;
 
-import com.codestates.coffee.entity.CoffeeRef;
+import com.codestates.audit.Auditable;
 import com.codestates.member.entity.Member;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.jdbc.core.mapping.AggregateReference;
-import org.springframework.data.relational.core.mapping.MappedCollection;
-import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
+@NoArgsConstructor
 @Getter
 @Setter
-@Table("ORDERS")
-public class Order {
+@Entity(name = "ORDERS")
+public class Order extends Auditable {
     @Id
-    private long orderId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long orderId;
 
-    // 테이블 외래키처럼 memberId를 추가해서 참조하도록 한다.
-    private AggregateReference<Member, Long> memberId;
-
-    @MappedCollection(idColumn = "ORDER_ID")
-    private Set<CoffeeRef> orderCoffees = new LinkedHashSet<>();
-
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus = OrderStatus.ORDER_REQUEST;
-    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "MEMBER_ID")
+    private Member member;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+    private List<OrderCoffee> orderCoffees = new ArrayList<>();
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void addOrderCoffee(OrderCoffee orderCoffee) {
+        this.orderCoffees.add(orderCoffee);
+        if (orderCoffee.getOrder() != this) {
+            orderCoffee.addOrder(this);
+        }
+    }
 
     public enum OrderStatus {
         ORDER_REQUEST(1, "주문 요청"),
