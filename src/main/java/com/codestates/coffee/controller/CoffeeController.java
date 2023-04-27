@@ -6,7 +6,9 @@ import com.codestates.coffee.dto.CoffeeResponseDto;
 import com.codestates.coffee.entity.Coffee;
 import com.codestates.coffee.mapper.CoffeeMapper;
 import com.codestates.coffee.service.CoffeeService;
+import com.codestates.dto.MultiResponseDto;
 import com.codestates.utils.UriCreator;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -18,10 +20,10 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v10/coffees")
+@RequestMapping("/v11/coffees")
 @Validated
 public class CoffeeController {
-    private final static String COFFEE_DEFAULT_URL = "/v10/coffees";
+    private final static String COFFEE_DEFAULT_URL = "/v11/coffees";
 
     private CoffeeService coffeeService;
     private CoffeeMapper mapper;
@@ -36,7 +38,7 @@ public class CoffeeController {
         Coffee coffee = mapper.coffeePostDtoToCoffee(coffeePostDto);
         Coffee createdCoffee = coffeeService.createCoffee(coffee);
 
-        // "/v10/coffees/{coffee-id}"
+        // "/v11/coffees/{coffee-id}"
         URI location =
                 UriCreator.createUri(COFFEE_DEFAULT_URL, createdCoffee.getCoffeeId());
 
@@ -63,12 +65,17 @@ public class CoffeeController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    // 페이지네이션 적용
     @GetMapping
-    public ResponseEntity getCoffees() {
-        List<Coffee> coffees = coffeeService.findCoffees();
-        List<CoffeeResponseDto> response = mapper.coffeesToCoffeeResponseDtos(coffees);
+    public ResponseEntity getCoffees(@Positive @RequestParam int page,
+                                     @Positive @RequestParam int size) {
+        Page<Coffee> pageCoffees = coffeeService.findCoffees(page - 1, size);
+        List<Coffee> coffees = pageCoffees.getContent();
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        MultiResponseDto multiResponseDto =
+                new MultiResponseDto<>(mapper.coffeesToCoffeeResponseDtos(coffees), pageCoffees);
+
+        return new ResponseEntity<>(multiResponseDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{coffee-id}")
