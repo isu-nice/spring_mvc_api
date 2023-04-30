@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Getter
 public class ErrorResponse {
 
-    private Integer status;
+    private int status;
     private String message;
 
     // MethodArgumentNotValidException 으로부터 발생하는 에러 정보를 담는 멤버 변수
@@ -24,14 +24,15 @@ public class ErrorResponse {
     private List<ConstraintViolationError> violationErrors;
 
     // constructor 추가
-    public ErrorResponse(Integer status, String message) {
+    private ErrorResponse(int status, String message) {
         this.status = status;
         this.message = message;
     }
 
     // private 로 설정 -> new 하지 못하도록 함
     // -> of() 메서드를 이용해서 ErrorResponse 객체를 생성할 수 있음
-    private ErrorResponse(List<FieldError> fieldErrors, List<ConstraintViolationError> violationErrors) {
+    private ErrorResponse(final List<FieldError> fieldErrors,
+                          final List<ConstraintViolationError> violationErrors) {
         this.fieldErrors = fieldErrors;
         this.violationErrors = violationErrors;
     }
@@ -56,6 +57,10 @@ public class ErrorResponse {
 
     public static ErrorResponse of(HttpStatus httpStatus) {
         return new ErrorResponse(httpStatus.value(), httpStatus.getReasonPhrase());
+    }
+
+    public static ErrorResponse of(HttpStatus httpStatus, String message) {
+        return new ErrorResponse(httpStatus.value(), message);
     }
 
     // 1. 필드(DTO 클래스의 멤버 변수)의 유효성 검증에서 발생하는 에러 정보를 생성
