@@ -4,12 +4,12 @@ import com.codestates.coffee.entity.Coffee;
 import com.codestates.coffee.repository.CoffeeRepository;
 import com.codestates.exception.BusinessLogicException;
 import com.codestates.exception.ExceptionCode;
-import com.codestates.order.entity.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CoffeeService {
@@ -41,6 +41,8 @@ public class CoffeeService {
                 .ifPresent(findCoffee::setEngName);
         Optional.ofNullable(coffee.getPrice())
                 .ifPresent(findCoffee::setPrice);
+        Optional.ofNullable(coffee.getCoffeeStatus())
+                .ifPresent(findCoffee::setCoffeeStatus);
 
         return coffeeRepository.save(findCoffee);
     }
@@ -49,22 +51,24 @@ public class CoffeeService {
         return findVerifiedCoffeeByQuery(coffeeId);
     }
 
-    // 주문에 해당하는 커피 정보 조회
+ /*   // 주문에 해당하는 커피 정보 조회
     public List<Coffee> findOrderedCoffees(Order order) {
         return order.getOrderCoffees()
                 .stream()
                 .map(coffeeRef -> findCoffee(coffeeRef.getCoffeeId()))
                 .collect(Collectors.toList());
+    }*/
+
+    public Page<Coffee> findCoffees(int page, int size) {
+        return coffeeRepository.findAll(
+                PageRequest.of(page, size,
+                        Sort.by("coffeeId").descending()));
     }
 
-    public List<Coffee> findCoffees() {
-        return (List<Coffee>) coffeeRepository.findAll();
-    }
-
-    // 주문한 커피 정보를 한번에 조회한다
+  /*  // 주문한 커피 정보를 한번에 조회한다
     public List<Coffee> findAllCoffeesByIds(List<Long> coffeeIds) {
         return (List<Coffee>) coffeeRepository.findAllById(coffeeIds);
-    }
+    }*/
 
     public void deleteCoffee(long coffeeId) {
         Coffee coffee = findCoffee(coffeeId);
