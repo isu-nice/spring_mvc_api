@@ -1,76 +1,72 @@
 package com.codestates.order.mapper;
 
-import com.codestates.coffee.dto.CoffeeResponseDto;
 import com.codestates.coffee.entity.Coffee;
-import com.codestates.coffee.entity.CoffeeRef;
-import com.codestates.coffee.service.CoffeeService;
+import com.codestates.member.entity.Member;
 import com.codestates.order.dto.OrderCoffeeResponseDto;
+import com.codestates.order.dto.OrderPatchDto;
 import com.codestates.order.dto.OrderPostDto;
 import com.codestates.order.dto.OrderResponseDto;
 import com.codestates.order.entity.Order;
+import com.codestates.order.entity.OrderCoffee;
 import org.mapstruct.Mapper;
-import org.springframework.data.jdbc.core.mapping.AggregateReference;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
+    Order orderPatchDtoToOrder(OrderPatchDto orderPatchDto);
+
+    List<OrderResponseDto> ordersToOrderResponseDtos(List<Order> orders);
+
     default Order orderPostDtoToOrder(OrderPostDto orderPostDto) {
         Order order = new Order();
+        Member member = new Member();
+        member.setMemberId(orderPostDto.getMemberId());
 
-        order.setMemberId(new AggregateReference.IdOnlyAggregateReference(
-                orderPostDto.getMemberId()));
-
-        Set<CoffeeRef> orderCoffees =
-                orderPostDto.getOrderCoffees()
-                        .stream()
-                        .map(orderCoffeeDto ->
-                                CoffeeRef.builder()
-                                        .coffeeId(orderCoffeeDto.getCoffeeId())
-                                        .quantity(orderCoffeeDto.getQuantity())
-                                        .build())
-                        .collect(Collectors.toSet());
-
+        List<OrderCoffee> orderCoffees = orderPostDto.getOrderCoffees().stream()
+                .map(orderCoffeeDto -> {
+                    OrderCoffee orderCoffee = new OrderCoffee();
+                    Coffee coffee = new Coffee();
+                    coffee.setCoffeeId(orderCoffeeDto.getCoffeeId());
+                    orderCoffee.addOrder(order);
+                    orderCoffee.addCoffee(coffee);
+                    orderCoffee.setQuantity(orderCoffeeDto.getQuantity());
+                    return orderCoffee;
+                }).collect(Collectors.toList());
+        order.setMember(member);
         order.setOrderCoffees(orderCoffees);
 
         return order;
     }
 
-    default OrderResponseDto orderToOrderResponseDto(CoffeeService coffeeService, Order order) {
-        long memberId = order.getMemberId().getId();
-
-        List<OrderCoffeeResponseDto> orderCoffees =
-                orderCoffeesToOrderCoffeeResponseDtos(coffeeService, order.getOrderCoffees());
+    default OrderResponseDto orderToOrderResponseDto(Order order) {
+        List<OrderCoffee> orderCoffees = order.getOrderCoffees();
 
         OrderResponseDto orderResponseDto = new OrderResponseDto();
-        orderResponseDto.setOrderCoffees(orderCoffees);
-        orderResponseDto.setMemberId(memberId);
-        orderResponseDto.setCreatedAt(order.getCreatedAt());
         orderResponseDto.setOrderId(order.getOrderId());
+        orderResponseDto.setMember(order.getMember());
         orderResponseDto.setOrderStatus(order.getOrderStatus());
-
-        // TODO 주문에 대한 더 자세한 정보로의 변환은 요구사항에 따라 다를 수 있다.
+        orderResponseDto.setCreatedAt(order.getCreatedAt());
+        orderResponseDto.setOrderCoffees(
+                orderCoffeesToOrderCoffeeResponseDtos(orderCoffees)
+        );
 
         return orderResponseDto;
     }
 
     default List<OrderCoffeeResponseDto> orderCoffeesToOrderCoffeeResponseDtos(
-            CoffeeService coffeeService, Set<CoffeeRef> orderCoffees){
-
-        return orderCoffees.stream()
-                .map(coffeeRef -> {
-                    Coffee coffee = coffeeService.findCoffee(coffeeRef.getCoffeeId());
-
-                    return new OrderCoffeeResponseDto(
-                            coffee.getCoffeeId(),
-                            coffee.getKorName(),
-                            coffee.getEngName(),
-                            coffee.getPrice(),
-                            coffeeRef.getQuantity());
-                    })
+            List<OrderCoffee> orderCoffees) {
+        return orderCoffees
+                .stream()
+                .map(orderCoffee -> OrderCoffeeResponseDto
+                        .builder()
+                        .coffeeId(orderCoffee.getCoffee().getCoffeeId())
+                        .quantity(orderCoffee.getQuantity())
+                        .price(orderCoffee.getCoffee().getPrice())
+                        .korName(orderCoffee.getCoffee().getKorName())
+                        .engName(orderCoffee.getCoffee().getEngName())
+                        .build())
                 .collect(Collectors.toList());
     }
 }
