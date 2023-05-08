@@ -11,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
 public class MemberDto {
+    @AllArgsConstructor
     @Getter
     public static class Post {
         @NotBlank
@@ -25,6 +26,7 @@ public class MemberDto {
         private String phone;
     }
 
+    @AllArgsConstructor
     @Getter
     public static class Patch{
         private long memberId;
@@ -46,7 +48,7 @@ public class MemberDto {
 
     @AllArgsConstructor
     @Getter
-    public static class response {
+    public static class Response {
         private long memberId;
         private String email;
         private String name;
