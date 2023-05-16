@@ -1,80 +1,156 @@
-package com.codestates.slice.controller;
+package com.codestates.slice.controller.member;
 
+import com.codestates.helper.MemberControllerTestHelper;
+import com.codestates.helper.StubData;
 import com.codestates.member.dto.MemberDto;
 import com.google.gson.Gson;
+import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Transactional
+/**
+ * Controller의 API만 이용하는 방법(리팩토링 후)
+ */
+@Transactional    // 테스트 케이스 하나의 실행이 끝나면 매 번 rollback 처리를 해준다.
 @SpringBootTest
 @AutoConfigureMockMvc
-public class MemberControllerTest {
+public class MemberControllerTest implements MemberControllerTestHelper {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private Gson gson;
 
-    @Test
-    void postMemberTest() throws Exception {
-        // given
-        MemberDto.Post post = new MemberDto.Post(
-                "hgd@gmail.com", "홍길동",
-                "010-1234-5678"
-        );
+    private ResultActions postResultActions;
+    private MemberDto.Post post;
+    private MvcResult postResult;
 
+    @BeforeEach
+    public void init() throws Exception {
+        // given
+        this.post = (MemberDto.Post) StubData.MockMember.getRequestBody(HttpMethod.POST);
         String content = gson.toJson(post);
+        String url = getUrl();
+        this.postResultActions = mockMvc.perform(postRequestBuilder(url, content));
+    }
+
+    @Test
+    public void postMemberTest() throws Exception {
+        // given
+        // init() 에서..
 
         // when
-        ResultActions actions = mockMvc.perform(
-                post("/v11/members")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(content)
-        );
+        // init() 에서..
 
         // then
-        actions.andExpect(status().isCreated())
+        this.postResultActions
+                .andExpect(status().isCreated())
                 .andExpect(header().string("Location", is(startsWith("/v11/members/"))));
     }
 
     @Test
-    void getMemberTest() throws Exception {
-        // postMember()를 이용한 테스트 데이터 생성 시작
+    void patchMemberTest() throws Exception {
         // given
-        MemberDto.Post post = new MemberDto.Post("hgd@gmail.com", "홍길동", "010-1234-5678");
-        String postContent = gson.toJson(post);
+        long memberId = getResponseMemberId();
 
-        ResultActions postActions = mockMvc.perform(
-                post("/v11/members")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(postContent)
-        );
-        // postMember()를 이용한 테스트 데이터 생성 종료
+        MemberDto.Patch patch =
+                (MemberDto.Patch) StubData.MockMember.getRequestBody(HttpMethod.PATCH); // 별도의 Stub Data를 만들어서 재사용
+        String content = gson.toJson(patch);
+        String uri = getURI();
 
-        String location = postActions.andReturn()
-                .getResponse()
-                .getHeader("Location"); // "v11/members/1"
+        // when
+        ResultActions actions =
+                mockMvc.perform(patchRequestBuilder(uri, memberId, content));
 
-        // when / then
-        mockMvc.perform(
-                        get(location).accept(MediaType.APPLICATION_JSON))
+        // then
+        actions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.phone").value(patch.getPhone()));
+    }
+
+    @Test
+    void getMemberTest() throws Exception {
+        // given
+        // init() 에서..
+
+        // when
+        long memberId = getResponseMemberId();
+        String uri = getURI();
+
+        // then
+        mockMvc.perform(getRequestBuilder(uri, memberId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.email").value(post.getEmail()))
-                .andExpect(jsonPath("$.data.name").value(post.getName()))
-                .andExpect(jsonPath("$.data.phone").value(post.getPhone()));
+                .andExpect(jsonPath("$.data.email").value(this.post.getEmail()))
+                .andExpect(jsonPath("$.data.name").value(this.post.getName()))
+                .andExpect(jsonPath("$.data.phone").value(this.post.getPhone()));
+    }
+
+    @Test
+    void getMembersTest() throws Exception {
+        // given
+        String content = gson.toJson(new MemberDto.Post("hgd2@gmail.com", "홍길동2",
+                "010-2222-2222"));
+        String url = getUrl();
+
+        // init에서 첫번째 데이터를 DB에 넣어 준 후, 두 번째 데이터 한번 더..
+        mockMvc.perform(postRequestBuilder(url, content));
+
+
+        String page = "1";
+        String size = "10";
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add("page", page);
+        queryParams.add("size", size);
+
+        // when
+        ResultActions actions = mockMvc.perform(getRequestBuilder(url, queryParams));
+
+        // then
+        MvcResult result = actions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andReturn();
+
+        List list = JsonPath.parse(result.getResponse().getContentAsString()).read("$.data");
+
+        assertThat(list.size(), is(2));
+    }
+
+    @Test
+    void deleteMemberTest() throws Exception {
+        // given
+        // init() 에서 DB에 넣어준다.
+
+        // when
+        long memberId = getResponseMemberId();
+        String uri = getURI();
+
+        // then
+        mockMvc.perform(deleteRequestBuilder(uri, memberId))
+                .andExpect(status().isNoContent());
+    }
+
+    private long getResponseMemberId() {
+        long memberId;
+        String location = this.postResultActions.andReturn().getResponse().getHeader("Location"); // "/v11/members/1"
+        memberId = Long.parseLong(location.substring(location.lastIndexOf("/") + 1));
+
+        return memberId;
     }
 }
