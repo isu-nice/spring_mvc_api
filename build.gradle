@@ -45,6 +45,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     implementation 'com.google.code.gson:gson'
+
+    // spring security
+    implementation 'org.springframework.boot:spring-boot-starter-security' // (1)
+
+    // JWT 를 위한 jjwt 라이브러리
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly	'io.jsonwebtoken:jjwt-jackson:0.11.5'
 }
 
 // :test task 실행 시, API문서 생성 스네핏 디렉토리 경로 설정
