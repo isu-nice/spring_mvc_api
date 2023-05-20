@@ -16,6 +16,13 @@ spring:
   sql:
     init:
       data-locations: classpath*:db/h2/data.sql
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 728256068922-90lrp1lpgn3pjnljl3v8miuha2vte24g.apps.googleusercontent.com
+            client-secret: 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
 logging:
   level:
     org:
