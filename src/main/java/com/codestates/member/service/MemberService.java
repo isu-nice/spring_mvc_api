@@ -30,7 +30,9 @@ public class MemberService {
 
     // 리포지토리 DI
     public MemberService(MemberRepository memberRepository,
-                         ApplicationEventPublisher publisher, PasswordEncoder passwordEncoder, CustomAuthorityUtils authorityUtils) {
+                         ApplicationEventPublisher publisher,
+                         PasswordEncoder passwordEncoder,
+                         CustomAuthorityUtils authorityUtils) {
         this.memberRepository = memberRepository;
         this.publisher = publisher;
         this.passwordEncoder = passwordEncoder;
@@ -52,7 +54,7 @@ public class MemberService {
         Member savedMember = memberRepository.save(member);
 
         // 회원 저장 이벤트 생성
-        publisher.publishEvent(new MemberRegistrationApplicationEvent(this, savedMember));
+        publisher.publishEvent(new MemberRegistrationApplicationEvent(savedMember));
         // 회원 정보 저장
         return savedMember;
     }
