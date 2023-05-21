@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.Map;
 
 @Component
-public class JwtTokenizer {
+public class  JwtTokenizer {
     @Getter
     @Value("${jwt.key}")
     private String secretKey;
@@ -65,6 +65,7 @@ public class JwtTokenizer {
                 .compact();
     }
 
+    // 검증 후, Claims 를 반환하는 용도
     public Jws<Claims> getClaims(String jws, String base64EncodedSecretKey) {
         Key key = getKeyFromBase64EncodedKey(base64EncodedSecretKey);
 
@@ -75,7 +76,7 @@ public class JwtTokenizer {
         return claims;
     }
 
-    // JWT Signature 검증 기능 -> 위/변조 여부 확인
+    // JWT Signature 검증 기능 -> 위/변조 여부 확인 (단순히 검증만 하는 용도)
     // 'jws' 는 Signature가 포함된 JWT 라는 의미
     public void verifySignature(String jws, String base64EncodedSecretKey) {
         Key key = getKeyFromBase64EncodedKey(base64EncodedSecretKey);
@@ -99,7 +100,7 @@ public class JwtTokenizer {
     private Key getKeyFromBase64EncodedKey(String base64EncodedSecretKey) {
         // base64 형식으로 인코딩된 secret key를 디코딩한 후 byte[]를 리턴함
         byte[] keyBytes = Decoders.BASE64.decode(base64EncodedSecretKey);
-        // keyBytes[]를 기반으로 적절한 HMAC 알고리즘을 적용한 Key 객체를 생
+        // keyBytes[]를 기반으로 적절한 HMAC 알고리즘을 적용한 Key 객체를 생성
         Key key = Keys.hmacShaKeyFor(keyBytes);
         return key;
     }
