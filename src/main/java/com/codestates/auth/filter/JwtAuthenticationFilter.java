@@ -5,18 +5,22 @@ import com.codestates.auth.jwt.JwtTokenizer;
 import com.codestates.member.entity.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+// 클라이언트의 로그인 인증 요청을 처리하는 엔트리 포인트 역할
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     // 로그인 정보를 전달받아 UserDetailsService와 인터랙션 한 뒤 인증 여부 판단
     private final AuthenticationManager authenticationManager;
@@ -48,7 +52,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain chain,
-                                            Authentication authResult) {
+                                            Authentication authResult) throws ServletException, IOException {
         // Member 엔티티 클래스의 객체를 얻음
         Member member = (Member) authResult.getPrincipal();
 
@@ -62,7 +66,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
          access token은 클라이언트 측에서 백엔드 애플리케이션 측에 요청을 보낼 때마다
          request 헤더에 추가해서 클라이언트 측의 자격을 증명하는 데 사용됨
          */
-        response.setHeader("Authorization", "Bearer " + accessToken);
+        response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
         /*
          response 헤더(Refresh)에 refresh token 추가
          refresh token은 access token이 만료될 경우,
@@ -70,10 +74,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
          refresh token을 access token과 함께 제공할지 여부는 요구 사항에 따라 달라질 수 있다.
          */
         response.setHeader("Refresh", refreshToken);
+
+        this.getSuccessHandler().onAuthenticationSuccess(request, response, authResult);
     }
 
     private String delegateAccessToken(Member member) {
         Map<String, Object> claims = new HashMap<>();
+//        claims.put("memberId", member.getMemberId()); // 식별자도 포함할 수 있다.
         claims.put("username", member.getEmail());
         claims.put("roles", member.getRoles());
 
@@ -89,7 +96,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private String delegateRefreshToken(Member member) {
         String subject = member.getEmail();
-        Date expiration = jwtTokenizer.getTokenExpiration(jwtTokenizer.getRefreshTokenExpirationMinutes());
+        Date expiration = jwtTokenizer. getTokenExpiration(jwtTokenizer.getRefreshTokenExpirationMinutes());
         String base64EncodedSecretKey = jwtTokenizer.encodeBase64SecretKey(jwtTokenizer.getSecretKey());
 
         String refreshToken = jwtTokenizer.generateRefreshToken(subject, expiration, base64EncodedSecretKey);
