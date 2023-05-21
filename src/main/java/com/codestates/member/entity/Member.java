@@ -24,10 +24,16 @@ public class Member extends Auditable {
     private String email;
 
     @Column(length = 100, nullable = false)
+    private String password;
+
+    @Column(length = 100, nullable = false)
     private String name;
 
     @Column(length = 13, nullable = false, unique = true)
     private String phone;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> roles = new ArrayList<>();
 
     @Enumerated(value = EnumType.STRING)
     @Column(length = 20, nullable = false)
