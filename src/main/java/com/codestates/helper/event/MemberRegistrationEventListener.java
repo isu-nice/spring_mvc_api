@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
 @EnableAsync
-@Configuration
+//@Configuration
 @Component
 @Slf4j
 public class MemberRegistrationEventListener {
