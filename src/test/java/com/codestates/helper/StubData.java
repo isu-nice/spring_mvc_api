@@ -19,7 +19,7 @@ public class StubData {
     private static Map<HttpMethod, Object> stubRequestBody;
     static {
         stubRequestBody = new HashMap<>();
-        stubRequestBody.put(HttpMethod.POST, new MemberDto.Post("hgd@gmail.com","홍길동",
+        stubRequestBody.put(HttpMethod.POST, new MemberDto.Post("hgd@gmail.com","1111","홍길동",
                 "010-1111-1111"));
         stubRequestBody.put(HttpMethod.PATCH, new MemberDto.Patch(1, "홍길동", "010-1111-1111", Member.MemberStatus.MEMBER_ACTIVE));
     }
