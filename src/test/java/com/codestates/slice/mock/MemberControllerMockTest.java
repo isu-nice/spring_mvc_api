@@ -40,7 +40,7 @@ public class MemberControllerMockTest {
     @Test
     void postMember() throws Exception {
         // given
-        MemberDto.Post post = new MemberDto.Post("hgd@gmail.com", "홍길동", "010-1111-2222");
+        MemberDto.Post post = new MemberDto.Post("hgd@gmail.com","1111","홍길동", "010-1111-2222");
         Member member = mapper.memberPostToMember(post);
         member.setMemberId(1L);
 
