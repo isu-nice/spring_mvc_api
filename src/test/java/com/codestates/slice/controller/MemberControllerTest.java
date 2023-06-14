@@ -104,7 +104,7 @@ public class MemberControllerTest implements MemberControllerTestHelper {
     @Test
     void getMembersTest() throws Exception {
         // given
-        String content = gson.toJson(new MemberDto.Post("hgd2@gmail.com", "홍길동2",
+        String content = gson.toJson(new MemberDto.Post("hgd2@gmail.com", "asdf", "홍길동2",
                 "010-2222-2222"));
         String url = getUrl();
 
