@@ -69,6 +69,7 @@ public class MemberControllerRestDocsTest {
         // [given]
         // postMember() 핸들러 메서드에 전송하는 request body
         MemberDto.Post post = new MemberDto.Post("hgd@gmail.com",
+                "asdf",
                 "홍길동",
                 "010-1234-5678");
         String content = gson.toJson(post);
