@@ -27,12 +27,12 @@ import java.util.Arrays;
 
 // TODO 파일들 싹 수정해서 써야함!!
 // @Configuration
-public class Securityconfiguration {
+public class SecurityConfiguration {
     private final JwtTokenizer jwtTokenizer;
     private final CustomAuthorityUtils authorityUtils;
     private final MemberService memberService;
 
-    public Securityconfiguration(JwtTokenizer jwtTokenizer,
+    public SecurityConfiguration(JwtTokenizer jwtTokenizer,
                                  CustomAuthorityUtils authorityUtils,
                                  MemberService memberService) {
         this.jwtTokenizer = jwtTokenizer;
